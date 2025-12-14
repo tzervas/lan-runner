@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ollama-config
+  labels:
+    app: ollama
+    tier: inference
+    component: api
+    managed-by: lan-runner
+  namespace: lan-runner
+data:
+  OLLAMA_HOST: "0.0.0.0"

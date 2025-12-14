@@ -1,0 +1,19 @@
+apiVersion: actions.github.com/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: github-runner
+  namespace: lan-runner
+spec:
+  replicas: 1
+  template:
+    spec:
+      repository: github.com/your/repo  # set to your repo (or use organization: your-org)
+      labels:
+        - lan
+        - cpu
+        - intel
+      env: []
+      image: ghcr.io/actions/actions-runner:latest
+      githubAPICredentialsFrom:
+        secretRef:
+          name: github-token  # create this secret with a PAT that can manage runners

@@ -1,0 +1,7 @@
+namespace: lan-runner
+resources:
+  - namespace.yaml
+  - ollama-configmap.yaml
+  - ollama-statefulset.yaml
+  - ollama-service.yaml
+  - runners-runnerdeployment.yaml

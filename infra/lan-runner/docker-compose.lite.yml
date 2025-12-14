@@ -1,0 +1,12 @@
+version: "3.9"
+
+# Laptop-friendly overlay: lower resource footprint.
+# Apply with:
+#   docker compose -f docker-compose.yml -f docker-compose.lite.yml up -d
+services:
+  github-runner:
+    mem_limit: 1g
+    cpus: 1.5
+  ollama:
+    mem_limit: 3g
+    cpus: 2
