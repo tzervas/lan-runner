@@ -12,3 +12,17 @@
 - **Patterns to keep**: Minimal images (no custom Dockerfiles), env-driven configuration, CPU-safe defaults, short-lived registration tokens (do not bake tokens into code), and keeping README in sync with compose/env expectations.
 - **Documentation Index**: Refer to `documentation-index.md` for comprehensive mapping of all docs, configs, and references.
 - **Workflow Requirements**: Always create verified commits using GPG signing. Ensure `git config commit.gpgsign true` is set. Update `PROJECT.md` for progress tracking and sync all docs when making changes.
+
+## Tooling Setup with uv
+
+- Use uv for all Python dependency management. Never use raw pip commands.
+- Install dependencies: `uv sync`
+- Add dev dependencies: `uv add --dev <package>`
+- Run tools: `uv run <command>`
+
+## Devcontainer Usage
+
+- Use the `.devcontainer` for consistent development environment.
+- Includes tty support for interactive terminal sessions.
+- Session display enabled via X11 forwarding for GUI applications.
+- Post-create command syncs dependencies with uv.

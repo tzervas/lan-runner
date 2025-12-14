@@ -1,0 +1,9 @@
+[project]
+name = "lan-runner"
+version = "0.1.0"
+description = "LAN Runner with Ollama"
+authors = [{name = "tzervas"}]
+dependencies = []
+
+[tool.uv]
+dev-dependencies = ["yamllint"]
