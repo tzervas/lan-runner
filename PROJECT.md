@@ -28,7 +28,6 @@ LAN Runner + Ollama is a Docker Compose stack that provides a GitHub self-hosted
 
 ## Future Enhancements
 - [ ] Implement monitoring and logging aggregation
-- [ ] Implement monitoring and logging aggregation
 - [ ] Add support for multiple Ollama models pre-loading
 - [ ] Create Helm chart for easier Kubernetes deployment
 - [ ] Add ARM64 support for broader hardware compatibility
