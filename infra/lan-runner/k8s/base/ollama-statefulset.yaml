@@ -56,7 +56,7 @@ spec:
     - metadata:
         name: ollama-models
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
             storage: 20Gi
