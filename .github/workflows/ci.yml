@@ -1,42 +1,43 @@
+---
 name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Lint YAML files
-      uses: ibiqlik/action-yamllint@v3
-      with:
-        file_or_dir: infra/lan-runner/
-        config_file: .yamllint.yml
-    - name: Lint Kubernetes manifests
-      uses: bmuschko/setup-kubeconform@v1
-    - name: Validate Kubernetes manifests
-      run: kubeconform -summary -verbose infra/lan-runner/k8s/
+      - uses: actions/checkout@v4
+      - name: Lint YAML files
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: infra/lan-runner/
+          config_file: .yamllint.yml
+      - name: Lint Kubernetes manifests
+        uses: bmuschko/setup-kubeconform@v1
+      - name: Validate Kubernetes manifests
+        run: kubeconform -summary -verbose infra/lan-runner/k8s/
 
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Docker
-      run: docker --version
-    - name: Validate configuration
-      run: |
-        cd infra/lan-runner
-        cp .env.example .env
-        echo "RUNNER_TOKEN=dummy_token_for_ci" >> .env
-        echo "REPO_URL=https://github.com/tzervas/lan-runner" >> .env
-        ./test.sh
-    - name: Test Docker Compose config
-      run: |
-        cd infra/lan-runner
-        docker compose config
-        docker compose -f docker-compose.yml -f docker-compose.lite.yml config
-        docker compose -f docker-compose.yml -f docker-compose.gpu.yml config
+      - uses: actions/checkout@v4
+      - name: Set up Docker
+        run: docker --version
+      - name: Validate configuration
+        run: |
+          cd infra/lan-runner
+          cp .env.example .env
+          echo "RUNNER_TOKEN=dummy_token_for_ci" >> .env
+          echo "REPO_URL=https://github.com/tzervas/lan-runner" >> .env
+          ./test.sh
+      - name: Test Docker Compose config
+        run: |
+          cd infra/lan-runner
+          docker compose config
+          docker compose -f docker-compose.yml -f docker-compose.lite.yml config
+          docker compose -f docker-compose.yml -f docker-compose.gpu.yml config
