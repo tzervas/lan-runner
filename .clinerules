@@ -1,0 +1,40 @@
+# Claude Code Rules for LAN Runner + Ollama
+
+## Project Overview
+LAN Runner + Ollama provides a secure, LAN-based CI/CD and AI inference stack using Docker Compose and Kubernetes.
+
+## Development Principles
+- **CPU-First**: Default to CPU-only Ollama unless GPU explicitly enabled
+- **Security**: Ephemeral tokens, documented trust boundaries, no hardcoded secrets
+- **Minimalism**: Official images, env-driven config, no custom Dockerfiles
+- **Documentation**: Keep README, context.md, and copilot-instructions.md synchronized
+
+## Coding Standards
+- YAML: Use consistent indentation, comprehensive comments
+- Shell: `set -euo pipefail`, error handling, clear output
+- Environment: All config via .env, no inline values
+- Git: Commit atomic changes with descriptive messages
+
+## Workflow
+1. Plan changes in PROJECT.md
+2. Implement with testing
+3. Update documentation
+4. Validate with test.sh
+5. Commit with conventional format
+
+## References
+- GitHub Actions Runners: https://docs.github.com/en/actions/hosting-your-own-runners
+- Ollama Docker: https://docs.ollama.com/docker
+- Actions Runner Controller: https://github.com/actions/actions-runner-controller
+- Documentation Index: See `documentation-index.md` for complete reference mapping
+
+## Workflow Requirements
+- Always commit with GPG verification: Ensure commits are signed
+- Update `PROJECT.md` to track progress on changes
+- Sync documentation across all files when modifying project components
+
+## Common Tasks
+- Adding features: Update docker-compose.yml, .env.example, README.md
+- Kubernetes changes: Modify k8s/ manifests, test with kubectl
+- Security updates: Review docker.sock usage, token handling
+- Performance: Monitor resource usage, optimize for CPU workloads
