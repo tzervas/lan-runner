@@ -5,9 +5,9 @@ This index provides a comprehensive mapping of all documentation, configuration 
 
 ## Workflow Requirements
 - **Always Verified Commits**: All commits must be GPG-signed. Ensure `git config commit.gpgsign true` and a valid signing key is configured. Never commit without verification.
-- **Documentation Sync**: When making changes, update all relevant documentation files to maintain consistency.
-- **Testing**: Run `test.sh` after changes and validate with `docker compose up -d`.
-- **Security First**: Review trust boundaries, token handling, and docker.sock implications.
+- **Branch Protection**: Main branch requires signed commits, no force pushes/deletions, enforced for admins.
+- **Vigilant Mode**: Dependabot automated security fixes enabled for proactive vulnerability management.
+- **Public Repository**: Repository is public to enable free branch protection features.
 
 ## Documentation Files
 
