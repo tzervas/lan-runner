@@ -1,0 +1,46 @@
+# LAN Runner + Ollama .gitignore
+
+# Environment files
+.env
+.env.local
+
+# Ollama data (models)
+ollama_data/
+*/ollama_data/
+
+# Runner workdir
+runner-workdir/
+*/runner-workdir/
+
+# Docker volumes (if persisted locally)
+volumes/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/settings.json
+.idea/
+*.iml
+
+# Python (if any scripts added)
+__pycache__/
+*.pyc
+*.pyo
+
+# Node.js (if any)
+node_modules/
+npm-debug.log*
+
+# Kubernetes secrets (avoid committing tokens)
+k8s/secrets.yaml

@@ -1,0 +1,16 @@
+version: "3.9"
+
+# GPU overlay: apply with
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+# Requires NVIDIA drivers + container toolkit on the host.
+services:
+  ollama:
+    environment:
+      - OLLAMA_GPU=${OLLAMA_GPU:-all}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    device_requests:
+      - driver: nvidia
+        count: all
+        capabilities:
+          - gpu
