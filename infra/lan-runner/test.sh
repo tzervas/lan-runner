@@ -3,28 +3,39 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-if [[ ! -f .env ]]; then
-  echo "[fail] .env not found. Copy .env.example to .env and fill required values." >&2
-  exit 1
+# Check if services are running (for non-destructive health checks)
+SERVICES_RUNNING=false
+if docker compose ps --quiet | grep -q .; then
+  SERVICES_RUNNING=true
+  echo "[info] Services appear to be running - skipping config validation for health checks"
+else
+  echo "[info] Services not running - performing full config validation"
 fi
 
-set -a
-source .env
-set +a
+if [[ "$SERVICES_RUNNING" == "false" ]]; then
+  if [[ ! -f .env ]]; then
+    echo "[fail] .env not found. Copy .env.example to .env and fill required values." >&2
+    exit 1
+  fi
 
-if [[ -z "${RUNNER_TOKEN:-}" ]]; then
-  echo "[fail] RUNNER_TOKEN is empty; fetch a fresh short-lived token." >&2
-  exit 1
-fi
+  set -a
+  source .env
+  set +a
 
-if [[ -n "${REPO_URL:-}" && -n "${ORG_URL:-}" ]]; then
-  echo "[fail] Set only one of REPO_URL or ORG_URL (not both)." >&2
-  exit 1
-fi
+  if [[ -z "${RUNNER_TOKEN:-}" ]]; then
+    echo "[fail] RUNNER_TOKEN is empty; fetch a fresh short-lived token." >&2
+    exit 1
+  fi
 
-if [[ -z "${REPO_URL:-}" && -z "${ORG_URL:-}" ]]; then
-  echo "[fail] Set REPO_URL (repo) or ORG_URL (org)." >&2
-  exit 1
+  if [[ -n "${REPO_URL:-}" && -n "${ORG_URL:-}" ]]; then
+    echo "[fail] Set only one of REPO_URL or ORG_URL (not both)." >&2
+    exit 1
+  fi
+
+  if [[ -z "${REPO_URL:-}" && -z "${ORG_URL:-}" ]]; then
+    echo "[fail] Set REPO_URL (repo) or ORG_URL (org)." >&2
+    exit 1
+  fi
 fi
 
 if ! command -v docker >/dev/null 2>&1; then
