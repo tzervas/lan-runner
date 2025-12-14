@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  github-runner:
+    image: ghcr.io/actions/actions-runner:latest
+    env_file:
+      - .env
+    environment:
+      # Required: registration token + scope (repo or org). Provide only one of REPO_URL or ORG_URL.
+      RUNNER_NAME: ${RUNNER_NAME}
+      RUNNER_WORKDIR: ${RUNNER_WORKDIR}
+      RUNNER_TOKEN: ${RUNNER_TOKEN}
+      REPO_URL: ${REPO_URL}
+      ORG_URL: ${ORG_URL}
+      LABELS: ${RUNNER_LABELS}
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      NO_PROXY: ${NO_PROXY}
+    volumes:
+      - runner-workdir:${RUNNER_WORKDIR}
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - lan
+
+  ollama:
+    image: ollama/ollama:latest
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_GPU=${OLLAMA_GPU}
+    volumes:
+      - ${OLLAMA_MODELS_DIR}:/root/.ollama
+    ports:
+      - "${OLLAMA_HOST_PORT}:11434"
+    restart: unless-stopped
+    networks:
+      - lan
+
+volumes:
+  runner-workdir:
+
+networks:
+  lan:
+    driver: bridge
