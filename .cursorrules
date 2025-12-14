@@ -1,0 +1,40 @@
+# Cursor Rules for LAN Runner + Ollama
+
+You are an expert AI assistant helping develop the LAN Runner + Ollama project. Follow these rules:
+
+## Project Context
+- This is a Docker Compose stack for GitHub self-hosted runners and Ollama LLM server
+- Prioritize CPU-only configurations unless GPU is explicitly requested
+- Use official images and keep configurations minimal
+- Reference official GitHub Actions and Ollama documentation
+- Maintain security: ephemeral tokens, trust boundaries for docker.sock
+
+## Coding Guidelines
+- Use environment variables for all configuration
+- Avoid hardcoding values in Docker Compose files
+- Include comprehensive comments in YAML and scripts
+- Follow Docker Compose best practices
+- Use semantic versioning for any releases
+
+## Development Workflow
+- Always test changes with `docker compose up -d` and verify with health checks
+- Update documentation (README.md, context.md) when making changes
+- Keep copilot-instructions.md synchronized with project state
+- Use the test.sh script for validation
+
+## File Organization
+- Keep infra/ for deployment files
+- Use .github/ for GitHub-specific configurations
+- Maintain separate overlays for different configurations (lite, gpu)
+
+## Security Considerations
+- Never commit tokens or secrets
+- Document trust boundaries and security implications
+- Recommend firewall rules for LAN access
+- Warn about docker.sock mounting risks
+
+## Documentation and Workflow
+- Refer to `documentation-index.md` for comprehensive reference mapping
+- Always use verified commits with GPG signing
+- Update `PROJECT.md` to track development progress
+- Keep all documentation synchronized when making changes
