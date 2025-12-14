@@ -1,7 +1,7 @@
 # Project Tracker: LAN Runner + Ollama
 
 ## Project Overview
-LAN Runner + Ollama is a Docker Compose stack that provides a GitHub self-hosted Actions runner paired with an Ollama LLM server, optimized for LAN environments with CPU-only defaults.
+LAN Runner + Ollama is a Docker Compose stack that provides a GitHub self-hosted Actions runner paired with an Ollama LLM server, optimized for LAN environments with CPU-only defaults. Repository is public with branch protection enabled.
 
 ## Current Status
 - **Implementation**: Complete for Docker Compose deployment.
