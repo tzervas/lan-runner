@@ -1,0 +1,44 @@
+name: registration-integration-selfhosted
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'Repository (owner/repo) to register the runner against (default current repo)'
+        required: false
+        default: 'tzervas/lan-runner'
+
+jobs:
+  register-runner-selfhosted:
+    runs-on: [self-hosted, linux, lan]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
+
+      - name: Validate RUNNER_PAT
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+        run: |
+          if [ -z "${RUNNER_PAT}" ]; then
+            echo "RUNNER_PAT is required"; exit 1
+          fi
+
+      - name: Create ephemeral token
+        id: token
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+          REPO: ${{ github.event.inputs.repo }}
+        run: |
+          token=$(curl -s -X POST -H "Accept: application/vnd.github+json" -H "Authorization: token ${RUNNER_PAT}" "https://api.github.com/repos/$REPO/actions/runners/registration-token" | jq -r '.token')
+          echo "token=$token" >> $GITHUB_OUTPUT
+
+      - name: Run registration script (self-hosted)
+        env:
+          RUNNER_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          bash scripts/ci/register-runner.sh ${{ github.event.inputs.repo }}

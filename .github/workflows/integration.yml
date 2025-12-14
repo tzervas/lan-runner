@@ -1,0 +1,52 @@
+name: integration-tests (Docker Compose smoke)
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  docker-compose-up:
+    name: Bring up Docker Compose & Run smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install docker compose plugin
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io docker-compose-plugin
+
+      - name: Docker info
+        run: docker info | head -n 20
+
+      - name: Start services (ollama only)
+        working-directory: infra/lan-runner
+        run: |
+          # bring up only Ollama so we don't require a registration token
+          docker compose -f docker-compose.yml -f docker-compose.lite.yml up -d --scale github-runner=0
+          echo "Waiting for Ollama to be healthy..."
+          for i in {1..60}; do
+            if curl --silent --fail http://localhost:11434/api/tags; then
+              echo "OLLAMA is up"
+              break
+            fi
+            echo "waiting... ($i)"; sleep 2
+          done
+
+      - name: Run test.sh
+        working-directory: infra/lan-runner
+        env:
+          OLLAMA_HOST_PORT: 11434
+        run: |
+          bash ./test.sh
+
+      - name: Gather logs and cleanup
+        if: always()
+        working-directory: infra/lan-runner
+        run: |
+          docker compose logs --tail=100 --no-color || true
+          docker compose down -v || true
