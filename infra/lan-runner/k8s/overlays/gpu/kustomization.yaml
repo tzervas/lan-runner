@@ -1,0 +1,5 @@
+namespace: lan-runner
+resources:
+  - ../../base
+patches:
+  - path: patch-ollama-gpu.yaml

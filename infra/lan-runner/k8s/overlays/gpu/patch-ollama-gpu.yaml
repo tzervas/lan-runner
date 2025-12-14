@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ollama
+spec:
+  template:
+    spec:
+      nodeSelector:
+        gpu: "true"   # label GPU nodes accordingly
+      tolerations:
+        - key: gpu
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      containers:
+        - name: ollama
+          env:
+            - name: OLLAMA_GPU
+              value: "all"
+          resources:
+            requests:
+              cpu: "2"
+              memory: 8Gi
+              nvidia.com/gpu: 1
+            limits:
+              cpu: "4"
+              memory: 16Gi
+              nvidia.com/gpu: 1
