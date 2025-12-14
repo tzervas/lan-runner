@@ -39,6 +39,8 @@ LAN Runner + Ollama is a Docker Compose stack that provides a GitHub self-hosted
 - [ ] Review and update dependencies in k8s manifests
 - [ ] Monitor GitHub Actions runner and Ollama releases for breaking changes
 - [ ] Update documentation for new features or changes
+- [x] Enable GitHub branch protection for main branch (require signed commits, PR reviews)
+- [x] Enable vigilant mode for security updates (Dependabot)
 
 ## Development Notes
 - Prioritize CPU efficiency and security
