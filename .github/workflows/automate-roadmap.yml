@@ -1,0 +1,36 @@
+name: Repo Roadmap Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Set to true to apply (create labels/issues). Default is false (dry-run)'
+        required: false
+        default: 'false'
+
+jobs:
+  run-roadmap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install gh CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Login gh
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Create labels
+        run: bash scripts/gh/create-labels.sh tzervas/lan-runner
+
+      - name: Create issues and roadmap (apply if selected)
+        run: |
+          APPLY="${{ github.event.inputs.apply }}"
+          if [[ "$APPLY" == "true" ]]; then
+            bash scripts/gh/create-issues-roadmap.sh tzervas/lan-runner true
+          else
+            bash scripts/gh/create-issues-roadmap.sh tzervas/lan-runner false
+          fi

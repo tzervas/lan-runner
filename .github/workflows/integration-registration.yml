@@ -1,0 +1,325 @@
+name: registration-integration (DIND)
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'Repository (owner/repo) to register the runner against (default current repo)'
+        required: false
+        default: 'tzervas/lan-runner'
+
+jobs:
+  register-runner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      docker:
+        image: docker:20-dind
+        env:
+          DOCKER_TLS_CERTDIR: ""
+        options: --privileged
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq docker-compose-plugin curl gh
+
+      - name: Validate RUNNER_PAT is set
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+        run: |
+          if [[ -z "${RUNNER_PAT}" ]]; then
+            echo "RUNNER_PAT is required to run registration tests. Set the RUNNER_PAT repo secret and re-run."; exit 1
+          fi
+
+      - name: Create ephemeral token
+        id: token
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+          REPO: ${{ github.event.inputs.repo }}
+        run: |
+          token=$(curl -s -X POST -H "Accept: application/vnd.github+json" -H "Authorization: token ${RUNNER_PAT}" "https://api.github.com/repos/$REPO/actions/runners/registration-token" | jq -r '.token')
+          echo "token=$token" >> $GITHUB_OUTPUT
+
+      - name: Run registration script
+        env:
+          RUNNER_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          bash scripts/ci/register-runner.sh ${{ github.event.inputs.repo }}
+name: registration-integration (DIND)
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'Repository (owner/repo) to register the runner against (default current repo)'
+        required: false
+        default: 'tzervas/lan-runner'
+
+jobs:
+  register-runner:
+    name: Register ephemeral runner and validate registration
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      docker:
+        image: docker:20-dind
+        env:
+          DOCKER_TLS_CERTDIR: ""
+        options: --privileged
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq docker-compose-plugin curl gh
+
+      - name: Validate RUNNER_PAT is set
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+        run: |
+          if [[ -z "${RUNNER_PAT}" ]]; then
+            echo "RUNNER_PAT is required to run registration tests. Set the RUNNER_PAT repo secret and re-run."
+            exit 1
+          fi
+
+      - name: Obtain ephemeral registration token
+        id: token
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+          REPO: ${{ github.event.inputs.repo }}
+        run: |
+          echo "Requesting registration token for $REPO"
+          token=$(curl -s -X POST -H "Accept: application/vnd.github+json" -H "Authorization: token ${RUNNER_PAT}" "https://api.github.com/repos/$REPO/actions/runners/registration-token" | jq -r '.token')
+          echo "token=$token" >> $GITHUB_OUTPUT
+
+      - name: Start compose with github-runner (ephemeral)
+        env:
+          RUNNER_TOKEN: ${{ steps.token.outputs.token }}
+          RUNNER_NAME: lan-runner-ci-01
+        run: |
+          bash ./scripts/ci/register-runner.sh ${{ github.event.inputs.repo }}
+
+      - name: Validate runner 'online' status
+        run: |
+          id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+          if [[ -z "$id" ]]; then
+            echo "Runner was not registered in time"
+            exit 1
+          fi
+          state=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners/$id --jq '.status')
+          echo "Runner #$id state: $state"
+          if [[ "$state" != 'online' ]]; then
+            echo "Runner not online: $state"
+            exit 1
+          fi
+
+      - name: Clean-up runner from GitHub and environment
+        if: always()
+        run: |
+          id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+          if [[ -n "$id" ]]; then
+            gh api --method DELETE /repos/${{ github.event.inputs.repo }}/actions/runners/$id || true
+            echo "Removed runner #$id"
+          fi
+          docker compose down -v || true
+name: registration-integration (DIND)
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'Repository (owner/repo) to register the runner against (default current repo)'
+        required: false
+        default: 'tzervas/lan-runner'
+
+jobs:
+  register-runner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      docker:
+        image: docker:20-dind
+        env:
+          DOCKER_TLS_CERTDIR: ""
+        options: --privileged
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq docker-compose-plugin curl gh
+
+      - name: Validate RUNNER_PAT is set
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+        run: |
+          if [[ -z "${RUNNER_PAT}" ]]; then
+            echo "RUNNER_PAT is required to run registration tests. Set the RUNNER_PAT repo secret and re-run."; exit 1
+          fi
+
+      - name: Obtain ephemeral registration token
+        id: token
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+          REPO: ${{ github.event.inputs.repo }}
+        run: |
+          echo "Requesting registration token for $REPO"
+          token=$(curl -s -X POST -H "Accept: application/vnd.github+json" -H "Authorization: token ${RUNNER_PAT}" "https://api.github.com/repos/$REPO/actions/runners/registration-token" | jq -r '.token')
+          echo "token=$token" >> $GITHUB_OUTPUT
+
+      - name: Start compose with github-runner (ephemeral)
+        working-directory: infra/lan-runner
+        run: |
+          export RUNNER_TOKEN=${{ steps.token.outputs.token }}
+
+      - name: Validate runner 'online' status
+        run: |
+          id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+          if [[ -z "$id" ]]; then
+            echo "Runner was not registered in time"; exit 1
+          fi
+          state=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners/$id --jq '.status')
+          echo "Runner #$id state: $state"
+          if [[ "$state" != 'online' ]]; then
+            echo "Runner not online: $state"; exit 1
+          fi
+
+      - name: Clean-up runner from GitHub and environment
+        if: always()
+        run: |
+          id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+          if [[ -n "$id" ]]; then
+            gh api --method DELETE /repos/${{ github.event.inputs.repo }}/actions/runners/$id || true
+            echo "Removed runner #$id"
+          fi
+          docker compose down -v || true
+          export REPO_URL=https://github.com/${{ github.event.inputs.repo }}
+          export RUNNER_NAME=lan-runner-ci-01
+          docker compose up -d --scale github-runner=1
+          # Wait for runner to appear on GitHub (max ~2 minutes)
+          for i in {1..60}; do
+            id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+            if [[ -n "$id" ]]; then
+              echo "Runner registered as #$id"; break
+            fi
+            echo "Waiting for runner registration ($i)"; sleep 2
+          done
+
+      - name: Validate runner 'online' status
+        run: |
+          id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+          if [[ -z "$id" ]]; then
+            echo "Runner was not registered in time"; exit 1
+          fi
+          state=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners/$id --jq '.status')
+          echo "Runner #$id state: $state"
+          if [[ "$state" != 'online' ]]; then
+            echo "Runner not online: $state"; exit 1
+          fi
+
+      - name: Clean-up runner from GitHub and environment
+        if: always()
+        run: |
+          id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+          if [[ -n "$id" ]]; then
+            gh api --method DELETE /repos/${{ github.event.inputs.repo }}/actions/runners/$id || true
+            echo "Removed runner #$id"
+          fi
+          docker compose down -v || true
+name: registration-integration (DIND)
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'Repository (owner/repo) to register the runner against (default current repo)'
+        required: false
+  default: 'tzervas/lan-runner'
+
+jobs:
+  register-runner:
+    name: Register ephemeral runner and validate registration
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Use docker-in-docker service
+    services:
+      docker:
+        image: docker:20-dind
+        env:
+          DOCKER_TLS_CERTDIR: ""
+        options: --privileged
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq docker-compose-plugin curl
+
+      - name: Validate RUNNER_PAT is set
+        run: |
+          if [[ -z "${RUNNER_PAT}" ]]; then
+            echo "RUNNER_PAT is required to run registration tests. Set the RUNNER_PAT repo secret and re-run."; exit 1
+          fi
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+
+      - name: Obtain ephemeral registration token
+        id: token
+        env:
+          RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
+          REPO: ${{ github.event.inputs.repo }}
+        run: |
+          echo "Requesting registration token for $REPO"
+          token=$(curl -s -X POST -H "Accept: application/vnd.github+json" -H "Authorization: token $RUNNER_PAT" "https://api.github.com/repos/$REPO/actions/runners/registration-token" | jq -r '.token')
+          echo "token=$token" >> $GITHUB_OUTPUT
+
+    - name: Start compose with github-runner (ephemeral)
+        working-directory: infra/lan-runner
+        run: |
+      export RUNNER_TOKEN=${{ steps.token.outputs.token }}
+      export REPO_URL=https://github.com/${{ github.event.inputs.repo }}
+      export RUNNER_NAME=lan-runner-ci-01
+          docker compose up -d --scale github-runner=1
+          # Wait for runner to appear on GitHub (max 120s)
+          for i in {1..60}; do
+            id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+            if [[ -n "$id" ]]; then
+              echo "Runner registered as #$id"; break
+            fi
+            echo "Waiting for runner registration ($i)"; sleep 2
+          done
+
+    - name: Validate runner 'online' status
+        run: |
+      id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+          if [[ -z "$id" ]]; then
+            echo "Runner was not registered in time"; exit 1
+          fi
+          state=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners/$id --jq '.status')
+          echo "Runner #$id state: $state"
+          if [[ "$state" != 'online' ]]; then
+            echo "Runner not online: $state"; exit 1
+          fi
+
+    - name: Clean-up runner from GitHub and environment
+        if: always()
+        run: |
+      id=$(gh api -H 'Accept: application/vnd.github+json' /repos/${{ github.event.inputs.repo }}/actions/runners --jq '.runners[] | select(.name == "lan-runner-ci-01") | .id' || true)
+          if [[ -n "$id" ]]; then
+            gh api --method DELETE /repos/${{ github.event.inputs.repo }}/actions/runners/$id || true
+            echo "Removed runner #$id"
+          fi
+          docker compose down -v || true
